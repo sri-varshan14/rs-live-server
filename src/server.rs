@@ -1,3 +1,33 @@
+/*
+ *  Author : sri-varshan14
+ *  Date : 21-02-2023
+ *  Main Repository : github.com/sri-varshan14/rs-live-server.git
+ *
+ *  MIT License
+ *
+ *  Copyright (c) 2023 Srivarshan
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in all
+ *  copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *  SOFTWARE.
+ *
+ *
+ * */
+
 use super::config;
 use std::{
     fs,
@@ -47,14 +77,15 @@ impl Server {
 
     fn handle_connection(&self, mut stream: TcpStream) {
         let mut buffer = [0; 1024];
-        let reloader_injection = "
+        let reloader_injection = format!("
+            <!-- CODE INJECTED BY LIVE_SERVER -->
             <script>
-                function reloader() {
+                function reloader() {{
                     location.reload()
-                }
-                window.setTimeout(reloader,3000);
+                }}
+                window.setTimeout(reloader,{});
             </script>
-        ";
+        ",self.configuration.duration_ms);
         stream.read(&mut buffer).unwrap();
 
         let root_request = b"GET / HTTP/1.1\r\n";
@@ -78,13 +109,12 @@ impl Server {
         let mut contest = match fs::read_to_string(&filename) {
             Ok(a) => a,
             Err(_) => {
-                println!("Unable to Find the file :{}", filename);
                 return;
             }
         };
 
         if filename == self.configuration.main_file {
-            contest.push_str(reloader_injection);
+            contest.push_str(&reloader_injection);
         }
 
         let response = format!(

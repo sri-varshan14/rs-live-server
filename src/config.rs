@@ -1,3 +1,33 @@
+/*
+ *  Author : sri-varshan14
+ *  Date : 21-02-2023
+ *  Main Repository : github.com/sri-varshan14/rs-live-server.git
+ *
+ *  MIT License
+ *
+ *  Copyright (c) 2023 Srivarshan
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in all
+ *  copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *  SOFTWARE.
+ *
+ *
+ * */
+
 use std::{env, net, path::Path, process, str::FromStr};
 
 #[derive(Debug)]
@@ -6,6 +36,7 @@ pub struct Config {
     pub main_file: String,
     pub ip_addr: net::IpAddr,
     pub port: u16,
+    pub duration_ms: u16,
 }
 
 impl Default for Config {
@@ -15,6 +46,7 @@ impl Default for Config {
             main_file: String::from("index.html"),
             ip_addr: net::IpAddr::V4(net::Ipv4Addr::new(127, 0, 0, 1)),
             port: 8080,
+            duration_ms: 3000,
         }
     }
 }
@@ -50,7 +82,7 @@ impl Config {
                     let ip_result = match net::Ipv6Addr::from_str(&ip_addr) {
                         Ok(a) => a,
                         Err(_) => {
-                            println!("Unable to parse the Ip4V I am sorry");
+                            println!("Unable to parse the Ip6V I am sorry");
                             process::exit(2);
                         }
                     };
@@ -84,7 +116,23 @@ impl Config {
 
                 self.port = port_number;
                 i += 1;
-            } else {
+            } else if arg_str == "--rtime" {
+                let time_ms = match args.get(i+1) {
+                    Some(a) => a,
+                    None => {
+                        println!("I think you forgot to give a time duration(u16) in millisecond");
+                        process::exit(2);
+                    }
+                };
+                self.duration_ms = match time_ms.parse::<u16>() {
+                    Ok(a) => a,
+                    Err(_) => {
+                        println!("The rtime value is not a valid duration in ms(u16)");
+                        process::exit(2);
+                    }
+                };
+            } 
+            else {
                 possible_file_names.push(arg_str.to_string());
             }
 
